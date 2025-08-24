@@ -87,8 +87,8 @@ func (r *Request)handlerFiles(conn net.Conn) {
 			log.Printf("Couldn't write to %v file\nError: %v\n", file.Name(), err)
 			res.write(conn, r, err)
 		}
-		rewritepoint := "HTTP/1.1 201 Created\r\n"
-		res.endpoint = &rewritepoint
+		resCreated := "HTTP/1.1 201 Created\r\n"
+		res.endpoint = &resCreated
 		res.write(conn, r, nil)
 		return
 	}

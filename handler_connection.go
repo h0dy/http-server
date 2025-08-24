@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 )
@@ -21,7 +22,7 @@ func handleConnection(conn net.Conn) {
 	for {
 		req, err := readParseRequest(conn)
 		if err != nil {
-			break
+			log.Fatal(err)
 		}
 		handleRequest(req, conn)
 	}
@@ -44,10 +45,10 @@ func readParseRequest(conn net.Conn) (*Request, error) {
 
 	// setting the request
 	newRequest := &Request{
-		path: strings.Split(lines[0], " ")[1],
 		method: strings.Split(lines[0], " ")[0],
-		body: lines[len(lines) - 1],
+		path: strings.Split(lines[0], " ")[1],
 		headers: make(map[string]string),
+		body: lines[len(lines) - 1],
 		compressions: []string{"gzip"},
 	}
 	for _, header := range lines[1:len(lines) - 2] {
