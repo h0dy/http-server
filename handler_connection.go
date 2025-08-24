@@ -75,6 +75,34 @@ func handleRequest(req *Request, conn net.Conn) {
 		req.handlerFiles(conn)
 		
 	} else {
-		respond(&Respond{}, conn, req, errors.New("method doesn't exist "))
+		res := &Respond{}
+		res.write(conn, req, errors.New("method doesn't exist "))
 	}
+}
+
+func (res *Respond) write(conn net.Conn, req *Request, err error) {
+	var fullRes string
+	resErr := "HTTP/1.1 404 Not Found\r\n\r\n"
+	resOk := "HTTP/1.1 200 OK\r\n"
+
+	if err != nil {
+		fullRes += resErr
+		conn.Write([]byte(fullRes))
+		return
+
+	} else if res.endpoint == nil {
+		res.endpoint = &resOk
+	}
+
+	fullRes += *res.endpoint
+	headerVal, ok := req.headers["Connection"]
+	if ok && headerVal == "close" {
+		res.headers["Connection"] = "close"
+		defer conn.Close()
+	}
+	for header, val := range res.headers {
+		fullRes += fmt.Sprintf("%s: %s\r\n", header, val)
+	}
+	fullRes += fmt.Sprintf("\r\n%s", res.body)
+	conn.Write([]byte(fullRes))
 }
